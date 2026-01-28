@@ -1,0 +1,47 @@
+=== Environment check ===
+/home/<USER>/.conda/envs/mvot/bin/python
+Python 3.10.19
+/home/<USER>/.conda/envs/mvot/bin/torchrun
+=========================
+Preparing the ['minibehavior'] dataset... 
+Preparing the ['minibehavior'] dataset... 
+Preparing the ['minibehavior'] dataset... 
+Preparing the ['minibehavior'] dataset... 
+MiniBehavior: 6400
+MiniBehavior: 6400
+MiniBehavior: 6400
+MiniBehavior: 6400
+Eval Num: 64
+Max source length: 3200
+Max target length: 1600
+Eval Num: 64
+Max source length: 3200
+Max target length: 1600
+Eval Num: 64
+Max source length: 3200
+Max target length: 1600
+Eval Num: 64
+Max source length: 3200
+Max target length: 1600
+generation_max_new_tokens: 1700
+generation_max_new_tokens: 1700
+generation_max_new_tokens: 1700
+generation_max_new_tokens: 1700
+Trainer build successfully.
+Trainer build successfully.
+Trainer build successfully.
+Trainer build successfully.
+{'loss': 4.2376, 'grad_norm': 1.9125, 'learning_rate': 8e-05, 'epoch': 20.0}
+{'discrepancy_loss': 1.118056, 'epoch': 20.0}
+{'discrepancy_loss': 0.96034, 'epoch': 20.0}
+{'discrepancy_loss': 0.830367, 'epoch': 20.0}
+{'discrepancy_loss': 1.101413, 'epoch': 20.0}
+{'train_runtime': 297614.13, 'train_samples_per_second': 0.86, 'train_steps_per_second': 0.027, 'train_loss': 4.18495, 'epoch': 40.0}
+***** train metrics *****
+  epoch                    =       40.0
+  total_flos               = 42453119765GF
+  train_loss               =     4.1849
+  train_runtime            =    82:40:14
+  train_samples            =     256000
+  train_samples_per_second =      0.860
+  train_steps_per_second   =      0.027

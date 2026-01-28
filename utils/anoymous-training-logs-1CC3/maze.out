@@ -1,0 +1,47 @@
+=== Environment check ===
+/home/<USER>/.conda/envs/mvot/bin/python
+Python 3.10.19
+/home/<USER>/.conda/envs/mvot/bin/torchrun
+=========================
+Preparing the ['interleaved_maze'] dataset... 
+Preparing the ['interleaved_maze'] dataset... 
+Preparing the ['interleaved_maze'] dataset... 
+Preparing the ['interleaved_maze'] dataset... 
+Interleaved Maze: 5007
+Interleaved Maze: 5007
+Interleaved Maze: 5007
+Interleaved Maze: 5007
+Eval Num: 1255
+Max source length: 2600
+Max target length: 1300
+Eval Num: 1255
+Max source length: 2600
+Max target length: 1300
+Eval Num: 1255
+Max source length: 2600
+Max target length: 1300
+Eval Num: 1255
+Max source length: 2600
+Max target length: 1300
+generation_max_new_tokens: 1400
+generation_max_new_tokens: 1400
+generation_max_new_tokens: 1400
+generation_max_new_tokens: 1400
+Trainer build successfully.
+Trainer build successfully.
+Trainer build successfully.
+Trainer build successfully.
+{'loss': 4.0917, 'grad_norm': 2.0273, 'learning_rate': 8e-05, 'epoch': 20.0}
+{'discrepancy_loss': 1.07812, 'epoch': 20.0}
+{'discrepancy_loss': 1.0457764, 'epoch': 20.0}
+{'discrepancy_loss': 0.7762464, 'epoch': 20.0}
+{'discrepancy_loss': 0.7870275999999999, 'epoch': 20.0}
+{'train_runtime': 108027.092, 'train_samples_per_second': 1.854, 'train_steps_per_second': 0.058, 'train_loss': 4.06495, 'epoch': 40.0}
+***** train metrics *****
+  epoch                    =       40.0
+  total_flos               = 33325699015GF
+  train_loss               =     4.0649
+  train_runtime            =    30:00:27
+  train_samples            =     200280
+  train_samples_per_second =      1.854
+  train_steps_per_second   =      0.058

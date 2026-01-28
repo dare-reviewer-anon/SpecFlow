@@ -1,0 +1,47 @@
+=== Environment check ===
+/home/<USER>/.conda/envs/mvot/bin/python
+Python 3.10.19
+/home/<USER>/.conda/envs/mvot/bin/torchrun
+=========================
+Preparing the ['frozenlake'] dataset... 
+Preparing the ['frozenlake'] dataset... 
+Preparing the ['frozenlake'] dataset... 
+Preparing the ['frozenlake'] dataset... 
+FrozenLake: 6846
+FrozenLake: 6846
+FrozenLake: 6846
+FrozenLake: 6846
+Eval Num: 1664
+Max source length: 2600
+Max target length: 1300
+Eval Num: 1664
+Max source length: 2600
+Max target length: 1300
+Eval Num: 1664
+Max source length: 2600
+Max target length: 1300
+Eval Num: 1664
+Max source length: 2600
+Max target length: 1300
+generation_max_new_tokens: 1400
+generation_max_new_tokens: 1400
+generation_max_new_tokens: 1400
+generation_max_new_tokens: 1400
+Trainer build successfully.
+Trainer build successfully.
+Trainer build successfully.
+Trainer build successfully.
+{'loss': 4.2371, 'grad_norm': 2.3172, 'learning_rate': 8e-06, 'epoch': 25.0}
+{'discrepancy_loss': 1.017141, 'epoch': 25.0}
+{'discrepancy_loss': 1.099865, 'epoch': 25.0}
+{'discrepancy_loss': 1.211961, 'epoch': 25.0}
+{'discrepancy_loss': 1.184869, 'epoch': 25.0}
+{'train_runtime': 419591.191, 'train_samples_per_second': 0.653, 'train_steps_per_second': 0.02, 'train_loss': 4.17523, 'epoch': 40.0}
+***** train metrics *****
+  epoch                    =       40.0
+  total_flos               = 45424838148GF
+  train_loss               =     4.1752
+  train_runtime            =   116:33:11
+  train_samples            =     273840
+  train_samples_per_second =      0.653
+  train_steps_per_second   =      0.020
