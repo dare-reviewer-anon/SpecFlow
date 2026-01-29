@@ -157,21 +157,3 @@ bash eval_path.sh
 ```
 
 Evaluation checks whether the generated solution satisfies task constraints such as valid paths or goal reachability.
-
----
-
-## Visualization and Analysis
-
-* Intermediate visual workspaces can be saved during inference.
-* Decoded visual states enable hop-wise analysis of reasoning behavior.
-* This supports inspection of failure modes and reasoning trajectories.
-
----
-
-## Notes
-
-* SpecFlow focuses on reasoning efficiency rather than photorealistic image generation.
-* Visual synthesis is used as a representation interface, not as the reasoning mechanism.
-* The framework can be extended to new visual reasoning tasks with minimal changes.
-
----
