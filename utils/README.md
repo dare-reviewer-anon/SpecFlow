@@ -6,8 +6,8 @@ This repository contains the implementation of **DARE** (Dynamic and Asymmetric 
 It includes:
 
 * A **baseline Anole training script** (`traino.py`) with **DeepSpeed ZeRO-3**.
-* The **DARE module** (`model_utils/dare/`) for dynamic token routing and KV-cache pruning.
-* A **DARE training script** (`train_dare.py`) that fine-tunes the baseline model with adaptive token retention.
+* The **DARE module** (`model_utils/specflow/`) for dynamic token routing and KV-cache pruning.
+* A **DARE training script** (`train_specflow.py`) that fine-tunes the baseline model with adaptive token retention.
 * Configuration files and utility scripts to reproduce the NeurIPS experiments on **dynamic spatial reasoning** (e.g., Maze-style tasks).
 
 ---
@@ -20,7 +20,7 @@ At the top level:
 DARE/
 ├── cfg/                     # YAML / config files (model, data, optimization, deepspeed, etc.)
 ├── model_utils/
-│   ├── dare/                # Core DARE implementation
+│   ├── specflow/                # Core DARE implementation
 │   │   ├── attention.py     # DARE-aware attention and routing hooks
 │   │   ├── config.py        # DARE configuration dataclasses and defaults
 │   │   ├── controller.py    # Main DARE controller for routing decisions
@@ -32,7 +32,7 @@ DARE/
 ├── prompt/                  # Prompt templates and instruction formats
 ├── utils/                   # Common utilities (data loading, evaluation, helpers)
 ├── traino.py                # Baseline Anole training (no DARE), with DeepSpeed ZeRO-3
-├── train_dare.py            # DARE fine-tuning script (enables dynamic routing)
+├── train_specflow.py            # DARE fine-tuning script (enables dynamic routing)
 ├── traino.sh                # Example launcher for baseline training
 ├── requirements.txt         # Full dependency list
 ├── requirements_clean.txt   # Minimal / cleaned dependency list
@@ -109,7 +109,7 @@ In our released code, the conversion from `maze-datasets/` into training-ready J
 * `--data interleaved_maze`
 * `--data_dir ${DATA_ROOT}`
 
-i.e., `traino.py` and `train_dare.py` will look for the preprocessed Maze dataset under:
+i.e., `traino.py` and `train_specflow.py` will look for the preprocessed Maze dataset under:
 
 ```bash
 ${DATA_ROOT}/interleaved_maze/
@@ -186,18 +186,18 @@ This checkpoint will be used as the starting point for DARE.
 
 ## 5. Step 2 – DARE Fine-Tuning (Dynamic Routing Enabled)
 
-Once the baseline model is trained, DARE is activated via `train_dare.py`.
-Conceptually, `train_dare.py`:
+Once the baseline model is trained, DARE is activated via `train_specflow.py`.
+Conceptually, `train_specflow.py`:
 
 * Loads the baseline checkpoint.
-* Wraps transformer blocks with `model_utils/dare/wrapped_block.py`.
+* Wraps transformer blocks with `model_utils/specflow/wrapped_block.py`.
 * Enables differentiable **Top-K routing** (`diff_topk.py`) using **Gumbel–Softmax**.
 * Applies **modality-specific retention targets** and **KV-cache pruning**.
 
 Example command (4 GPUs):
 
 ```bash
-torchrun --nproc_per_node=4 train_dare.py \
+torchrun --nproc_per_node=4 train_specflow.py \
   --model anole \
   --data interleaved_maze \
   --data_dir data_samples \
@@ -207,19 +207,19 @@ torchrun --nproc_per_node=4 train_dare.py \
   --do_train \
   --do_eval \
   --cfg_path cfg \
-  --output outputs/dare-anole7b-maze \
-  --note "dare-maze-" \
+  --output outputs/specflow-anole7b-maze \
+  --note "specflow-maze-" \
   --report_to none \
   --model_ckpt outputs/anole7b_zero3_4gpusoutput \
   --load_last_checkpoint \
-  --enable_dare \
+  --enable_specflow \
   --rho_text_target 0.7 \
   --rho_vis_target 0.4
 ```
 
 Important DARE-specific flags:
 
-* `--enable_dare`
+* `--enable_specflow`
   Switches the model to use the DARE controller / wrapped blocks.
 
 * `--rho_text_target`, `--rho_vis_target`

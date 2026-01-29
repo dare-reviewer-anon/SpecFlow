@@ -1,1 +1,1 @@
-from .dare import DAREConfig, DAREController, EfficientAttention, DAREWrappedBlock, DifferentiableTopK
+from .specflow import DAREConfig, DAREController, EfficientAttention, DAREWrappedBlock, DifferentiableTopK

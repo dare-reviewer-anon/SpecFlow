@@ -481,7 +481,7 @@ class CustomizeSeq2SeqTrainer(Seq2SeqTrainer):
             if self.state.global_step == self._globalstep_last_logged and self.state.global_step != 0:
                 self.log({"discrepancy_loss": float(discrepancy_loss)})
 
-        ctrl = getattr(model, "dare_controller", None)
+        ctrl = getattr(model, "specflow_controller", None)
         if ctrl is not None and ctrl.last_losses:
             extra = 0.0
             for name, val in ctrl.last_losses.items():

@@ -25,7 +25,7 @@ module load Miniconda3/23.5.2-0
 # 2. Environment setup
 #############################
 # Use your conda env without conda init
-export PATH=/home/<USER>/.conda/envs/dare-env/bin:$PATH
+export PATH=/home/<USER>/.conda/envs/specflow-env/bin:$PATH
 export PYTHONNOUSERSITE=1
 
 # HuggingFace / cache
