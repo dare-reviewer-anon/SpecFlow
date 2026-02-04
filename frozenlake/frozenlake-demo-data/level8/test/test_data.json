@@ -1,0 +1,78 @@
+{
+  "0": {
+    "actions": [
+      [
+        0,
+        1,
+        2,
+        3,
+        0,
+        3,
+        1
+      ]
+    ],
+    "states": [
+      [
+        0,
+        8,
+        16,
+        24,
+        25,
+        33,
+        34,
+        35
+      ]
+    ],
+    "rewards": [
+      0.0
+    ],
+    "data_id": [
+      0
+    ],
+    "env_desc": "SFFFFFFFFFFFFFFFFFFHFFFFFFFFFHFFFFFHFFFFFHHFFFHFFHFFHFHFFFFHFFFG",
+    "exec_states": [
+      "terminated"
+    ],
+    "additional_actions": [
+      []
+    ]
+  },
+  "1": {
+    "actions": [
+      [
+        2,
+        1,
+        0,
+        2,
+        1,
+        2,
+        1
+      ]
+    ],
+    "states": [
+      [
+        0,
+        1,
+        2,
+        10,
+        18,
+        26,
+        27,
+        35
+      ]
+    ],
+    "rewards": [
+      0.0
+    ],
+    "data_id": [
+      0
+    ],
+    "env_desc": "SFFFFFFFFFFFFFFFFFFHFFFFFFFFFHFFFFFHFFFFFHHFFFHFFHFFHFHFFFFHFFFG",
+    "exec_states": [
+      "terminated"
+    ],
+    "additional_actions": [
+      []
+    ]
+  }
+}

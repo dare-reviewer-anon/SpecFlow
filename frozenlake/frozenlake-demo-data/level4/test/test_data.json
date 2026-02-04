@@ -1,0 +1,60 @@
+{
+  "0": {
+    "actions": [
+      [
+        1,
+        2,
+        2
+      ]
+    ],
+    "states": [
+      [
+        0,
+        4,
+        8,
+        12
+      ]
+    ],
+    "rewards": [
+      0.0
+    ],
+    "data_id": [
+      0
+    ],
+    "env_desc": "SFFFFHFHFFFHHFFG",
+    "exec_states": [
+      "terminated"
+    ],
+    "additional_actions": [
+      []
+    ]
+  },
+  "1": {
+    "actions": [
+      [
+        2,
+        0
+      ]
+    ],
+    "states": [
+      [
+        0,
+        1,
+        5
+      ]
+    ],
+    "rewards": [
+      0.0
+    ],
+    "data_id": [
+      0
+    ],
+    "env_desc": "SFFFFHFHFFFHHFFG",
+    "exec_states": [
+      "terminated"
+    ],
+    "additional_actions": [
+      []
+    ]
+  }
+}

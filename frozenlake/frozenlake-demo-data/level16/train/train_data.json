@@ -1,0 +1,324 @@
+{
+  "0": {
+    "actions": [
+      [
+        2,
+        3,
+        2,
+        2,
+        3
+      ],
+      [
+        3,
+        0,
+        2,
+        0,
+        2,
+        3,
+        0,
+        0
+      ],
+      [
+        1,
+        1,
+        3,
+        3,
+        1,
+        1,
+        0,
+        2
+      ]
+    ],
+    "states": [
+      [
+        1,
+        17,
+        1,
+        17,
+        1,
+        2
+      ],
+      [
+        1,
+        0,
+        16,
+        32,
+        16,
+        32,
+        33,
+        49,
+        33
+      ],
+      [
+        1,
+        0,
+        16,
+        17,
+        18,
+        17,
+        16,
+        32,
+        33
+      ]
+    ],
+    "rewards": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "data_id": [
+      0,
+      1,
+      2
+    ],
+    "env_desc": "FSHFFFFFHFFFHFFFFFFFFFFFFFFFFFFFFFHHFFFFFFFFHFFFFFFHFHHFHFFFFFFFFFFFGFFHFFFFFFFFFFHFFFFFFFHFFFFFFFFFFFFFFFHFFFFFFFHFFHFFHFFHFFFFFHFFFFFFHFFFFHHFFFFFFFFFHFFFHFFFFFFFFFFFFFFFFFFFFFFFHFFFHHFFFFFFFHHFFFFHHFFFFHFFFFFFFFFFFFFFFFFFFFFFHFHFFFFFFFFFFFHHHFFHFHHHFFHF",
+    "exec_states": [
+      "terminated",
+      "truncated",
+      "truncated"
+    ],
+    "additional_actions": [
+      [],
+      [],
+      []
+    ]
+  },
+  "1": {
+    "actions": [
+      [
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2
+      ],
+      [
+        2,
+        1,
+        3,
+        3,
+        0
+      ],
+      [
+        3,
+        3,
+        2,
+        1,
+        1,
+        1,
+        2,
+        0
+      ]
+    ],
+    "states": [
+      [
+        1,
+        17,
+        33,
+        49,
+        65,
+        64,
+        65,
+        66,
+        67,
+        68
+      ],
+      [
+        1,
+        17,
+        18,
+        19,
+        20,
+        36
+      ],
+      [
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        18,
+        34,
+        18
+      ]
+    ],
+    "rewards": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "data_id": [
+      0,
+      1,
+      2
+    ],
+    "env_desc": "FSFFFFHFFFFFFFFHFFFFFFHFHFFFHFFFFFFHHHFFFHFHFFFHFFHFFFFFFFFFFFFFFFFFGFFFFFFFFFHFHFFHHFFFFFFFHHHFFFHFFFFFFFFFHFFHFFHFFFFFFFFFFFFFHFFFFFHFFFFFFFFFFFFFFFFFFFFFFHFHFFHFFHFFHFHHFFHHFFFFFFHFFFFFFFFFFFFFFFHFFHHHHFFFFHFHFFFFFFFFFFFFFFFFFFHFFFFHFFFFFFFFFFFFHFFFFFFF",
+    "exec_states": [
+      "success",
+      "terminated",
+      "truncated"
+    ],
+    "additional_actions": [
+      [],
+      [],
+      []
+    ]
+  },
+  "2": {
+    "actions": [
+      [
+        3,
+        0,
+        2
+      ],
+      [
+        3,
+        3,
+        1,
+        2,
+        2,
+        0,
+        3,
+        1,
+        3
+      ],
+      [
+        3,
+        0,
+        3
+      ]
+    ],
+    "states": [
+      [
+        1,
+        2,
+        1,
+        17
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        20,
+        21,
+        5,
+        4,
+        3,
+        4
+      ],
+      [
+        1,
+        2,
+        1,
+        0
+      ]
+    ],
+    "rewards": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "data_id": [
+      0,
+      1,
+      2
+    ],
+    "env_desc": "FSFFFFFFFFFHFFFFHHHFFFFFHFFHFFFFFFFFHFFFFFFHFFFFHHFFFFFHFHFFFFFFFFFFGHHFHFFFFFFFHFFFFHFFFHFFFFFHFFFFFFFFFFFFFFFFFFFFFHFFFFFFFFFFFFFFHFFFFFFFFHFHHFFFHFFFFFFHFFFFFFFFFFFFFHFFFFFFFFHFFFFFFFFFHFFFFFHFFFFFFFFFFHFFFFFFFFFFFHFFFFHFHFFFFFFFFHFFFFFFFFFFFFFFFFFFFFFH",
+    "exec_states": [
+      "terminated",
+      "truncated",
+      "truncated"
+    ],
+    "additional_actions": [
+      [],
+      [],
+      []
+    ]
+  },
+  "3": {
+    "actions": [
+      [
+        0
+      ],
+      [
+        3,
+        0,
+        0,
+        1,
+        3,
+        0,
+        3,
+        0,
+        1
+      ],
+      [
+        2,
+        2,
+        0,
+        3,
+        1,
+        2,
+        1,
+        0,
+        2
+      ]
+    ],
+    "states": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2,
+        18,
+        34,
+        35,
+        36,
+        35,
+        36,
+        20,
+        19
+      ],
+      [
+        1,
+        2,
+        18,
+        34,
+        18,
+        19,
+        35,
+        51,
+        67,
+        83
+      ]
+    ],
+    "rewards": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "data_id": [
+      0,
+      1,
+      2
+    ],
+    "env_desc": "HSFFFFFFFFFHFHFFFHFFFFFFFFFFFHFFFFFFFFFFFFFFFFHFFHFFFHFFFHFFFFFFFFFFGFFFFHHFFFHFFFFFFFHFHFFHFFFFFHFFFFFFFFFFHFFFHFFFFFFFFFFFFFFHHFFFHFFFFFFFFFFFHHFFFFFFFFFHFFFFFFFFFFFHFHFFFFFFHFFFHFHFFFHHFFFHFFFFHFFHFHFFFHHFFFFHFFFFFFFFHFFFFFFHFFFFHFFFHFFFHFFFHFHFFFFFFFFF",
+    "exec_states": [
+      "terminated",
+      "truncated",
+      "truncated"
+    ],
+    "additional_actions": [
+      [],
+      [],
+      []
+    ]
+  }
+}
