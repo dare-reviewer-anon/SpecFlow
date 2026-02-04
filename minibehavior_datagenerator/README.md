@@ -1,4 +1,3 @@
-
 # PPO-Based Mini-Behavior Dataset Generation (Ours)
 
 This repository extends the official **Mini-BEHAVIOR** framework
@@ -40,21 +39,21 @@ For full reproducibility, please use the exact versions listed above.
 
 ### Pre-trained PPO Models
 
-The complete set of PPO checkpoints (for room sizes 7, 8, 9, and 10) exceeds **100 MB**.
+The complete set of PPO checkpoints (for room sizes **8, 12, 16, and 20**) exceeds **100 MB**.
 However, **anonymous GitHub repositories strictly enforce a 100 MB storage limit**, which makes it impossible to upload all trained models.
 
 To comply with this constraint, we include **only the smallest checkpoint**:
 
 ```
-InstallingAPrinter_room7_final.zip
+InstallingAPrinter_room8_final.zip
 ```
 
 This file is sufficient for reviewers to **verify that the dataset-generation script runs correctly end-to-end**.
 
-To reproduce room-7 results, please use the dedicated script:
+To reproduce room-8 results, please use the dedicated script:
 
 ```
-mini_behavior/mini_behavior/generate_ppo_room7.py
+mini_behavior/mini_behavior/generate_ppo_room8.py
 ```
 
 This script contains identical logic to the full multi-level generator but is restricted to a single room size for verification within the anonymous GitHub size limits.
@@ -67,10 +66,10 @@ This script contains identical logic to the full multi-level generator but is re
 
 ```python
 room_configs = [
-    (7,  args.traj_max_steps_7),
     (8,  args.traj_max_steps_8),
-    (9,  args.traj_max_steps_9),
-    (10, args.traj_max_steps_10),
+    (12, args.traj_max_steps_12),
+    (16, args.traj_max_steps_16),
+    (20, args.traj_max_steps_20),
 ]
 ```
 
@@ -105,31 +104,31 @@ python generate_ppo_multilevel_dataset.py \
   --num_maps 50 \
   --rollouts_per_map 10 \
   --partial_obs True \
-  --traj_max_steps_7 10 \
-  --traj_max_steps_8 11 \
-  --traj_max_steps_9 12 \
-  --traj_max_steps_10 13
+  --traj_max_steps_8 8 \
+  --traj_max_steps_12 12 \
+  --traj_max_steps_16 14 \
+  --traj_max_steps_20 16
 ```
 
 Output structure:
 
 ```
 datasetppo/
-  room7/
+  room8/
     map_0/rollout_0/frame_0.png ...
     map_1/...
     data.json
-  room8/
-  room9/
-  room10/
+  room12/
+  room16/
+  room20/
 ```
 
-To verify only room 7 (because only this model is uploaded):
+To verify only room 8 (because only this model is uploaded):
 
 ```bash
-python generate_ppo_room7.py \
+python generate_ppo_room8.py \
   --models_root ../models \
-  --output_root dataset_room7 \
+  --output_root dataset_room8 \
   --num_maps 5 \
   --rollouts_per_map 10
 ```

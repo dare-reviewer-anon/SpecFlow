@@ -1,0 +1,40 @@
+{
+  "0": {
+    "actions": [
+      [
+        2,
+        2,
+        0,
+        2,
+        0,
+        2,
+        2
+      ]
+    ],
+    "states": [
+      [
+        0,
+        8,
+        16,
+        24,
+        25,
+        33,
+        34,
+        42
+      ]
+    ],
+    "rewards": [
+      0.0
+    ],
+    "data_id": [
+      0
+    ],
+    "env_desc": "SFFFFFFFFFFFFFFFFFFHFFFFFFFFFHFFFFFHFFFFFHHFFFHFFHFFHFHFFFFHFFFG",
+    "exec_states": [
+      "terminated"
+    ],
+    "additional_actions": [
+      []
+    ]
+  }
+}

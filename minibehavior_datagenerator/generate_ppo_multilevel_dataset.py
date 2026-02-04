@@ -790,37 +790,37 @@ if __name__ == "__main__":
 
     # Per-room maximum trajectory lengths (configurable)
     parser.add_argument(
-        "--traj_max_steps_7",
+        "--traj_max_steps_8",
         type=int,
-        default=10,
+        default=15,
         help="Maximum trajectory length for room_size=7",
     )
     parser.add_argument(
-        "--traj_max_steps_8",
+        "--traj_max_steps_12",
         type=int,
-        default=11,
+        default=19,
         help="Maximum trajectory length for room_size=8",
     )
     parser.add_argument(
-        "--traj_max_steps_9",
+        "--traj_max_steps_16",
         type=int,
-        default=12,
+        default=25,
         help="Maximum trajectory length for room_size=9",
     )
     parser.add_argument(
-        "--traj_max_steps_10",
+        "--traj_max_steps_20",
         type=int,
-        default=13,
+        default=30,
         help="Maximum trajectory length for room_size=10",
     )
 
     args = parser.parse_args()
 
     room_configs = [
-        (7, args.traj_max_steps_7),
         (8, args.traj_max_steps_8),
-        (9, args.traj_max_steps_9),
-        (10, args.traj_max_steps_10),
+        (12, args.traj_max_steps_12),
+        (16, args.traj_max_steps_16),
+        (20, args.traj_max_steps_20),
     ]
 
     for room_size, traj_max in room_configs:
