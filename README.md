@@ -113,9 +113,32 @@ python generate_ppo_multilevel_dataset.py
 
 SpecFlow is trained using flow matching to learn visual workspace dynamics.
 
+
+torchrun --nproc_per_node=4 train_specflow.py \
+  --model qwen \
+  --data interleaved_maze \
+  --data_dir <FS_ROOT>/data-samples \
+  --decoder_type qwen \
+  --input_format qwen \
+  --do_train \
+  --do_eval \
+  --cfg_path cfg \
+  --output outputs/specflow-qwen-maze \
+  --note "specflow-maze-image_seq_len-1024-" \
+  --image_seq_length 1024 \
+  --report_to "none" \
+  --train_bz 2 \
+  --val_bz 2 \
+  --grad_acc 32 \
+  --enable_specflow \
+  --model_ckpt <FS_ROOT>/DARE/outputs/qwen_zero3_4gpusoutput \
+  --load_last_checkpoint
+
 ```bash
 bash train_specflow.sh
 ```
 
+
 Training does not require modifying the language backbone.
+
 ---

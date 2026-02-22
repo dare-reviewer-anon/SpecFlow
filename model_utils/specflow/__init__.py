@@ -1,36 +1,4 @@
-# model_utils/specflow/__init__.py
-"""
-SpecFlow — Spectral-Progressive Thought Flow
 
-Core components for bounded multimodal reasoning with:
-  - Blockwise DCT projection
-  - Frequency masking schedules M(t)
-  - Flow-matching velocity models
-  - ODE integration (Euler)
-  - CFG conditioning (simple / pos-neg)
-  - Multi-hop controller (Alg.1)
-  - Flow-matching trainer (Alg.2)
-  - Debug / visualization tools
-
-Recommended usage pattern:
-
-    from model_utils.specflow import (
-        SpecFlowController,
-        SpecFlowTrainer,
-        UNetVelocityModel,
-        VLMAdapter,
-        MaskConfig,
-        SchedulerConfig,
-    )
-
-The velocity models live in:
-    model_utils.specflow.velocity.*
-
-Conditioning utilities:
-    model_utils.specflow.conditioning
-"""
-
-# ---- Projection (DCT) ----
 from .cosine_proj import block_dct, block_idct
 
 # ---- Masking ----

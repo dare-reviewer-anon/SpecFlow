@@ -91,7 +91,7 @@ def init_training_args(args):
     training_args.fp16 = False
     training_args.gradient_checkpointing = True
 
-    ds_config_path = os.path.join(args.cfg_path, "ds_zero3_4A100.json")
+    ds_config_path = os.path.join(args.cfg_path, "ds_zero3_4H100.json")
     if os.path.exists(ds_config_path):
         training_args.deepspeed = ds_config_path
 
