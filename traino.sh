@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=qwen-a100-4g
+#SBATCH --job-name=qwen-H100-4g
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
-#SBATCH --partition=gpu_a100          
+#SBATCH --partition=gpu_H100          
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8

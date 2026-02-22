@@ -58,7 +58,7 @@ SpecFlow/
 ├── traino.sh
 │
 ├── requirements.txt
-├── requirements_clean.txt
+
 └── README.md
 ```
 
@@ -69,7 +69,7 @@ SpecFlow/
 * Python 3.9 or later is recommended.
 
 ```bash
-pip install -r requirements_clean.txt
+pip install -r requirements.txt
 ```
 
 If required by the visual synthesis backend:
@@ -89,22 +89,22 @@ Each task provides a standalone data generator.
 * Maze
 
 ```bash
-cd maze_datagenerator
-python gen_image.py --size 8 --num 100
+cd maze
+python plot_maze.py
 ```
 
 * FrozenLake
 
 ```bash
-cd frozenlake_datagenerator
-python gen_image.py --map_size 8 --num 100
+cd frozenlake
+python frozen_lake_unfied_balance.py 
 ```
 
 * MiniBehavior
 
 ```bash
-cd minibehavior_datagenerator
-python gen_image.py
+cd minibehavior
+python generate_ppo_multilevel_dataset.py
 ```
 
 ---
@@ -117,43 +117,5 @@ SpecFlow is trained using flow matching to learn visual workspace dynamics.
 bash train_specflow.sh
 ```
 
-or
-
-```bash
-python train_specflow.py
-```
-
 Training does not require modifying the language backbone.
-
 ---
-
-## Inference
-
-Inference is task-specific and located in each task directory.
-
-Example for Maze:
-
-```bash
-cd Maze
-python infer_specflow.py \
-  --input ./8_test/8_1_001.png \
-  --meta  ./8_test/8_1_001.txt \
-  --out   ./output/8_1_001_solution.png
-```
-
-The visual workspace can optionally be decoded at intermediate reasoning steps.
-
----
-
-## Evaluation
-
-Evaluation scripts are provided per task.
-
-Example for Maze:
-
-```bash
-cd Maze/eval
-bash eval_path.sh
-```
-
-Evaluation checks whether the generated solution satisfies task constraints such as valid paths or goal reachability.
