@@ -113,7 +113,7 @@ python generate_ppo_multilevel_dataset.py
 
 SpecFlow is trained using flow matching to learn visual workspace dynamics.
 
-
+```
 torchrun --nproc_per_node=4 train_specflow.py \
   --model qwen \
   --data interleaved_maze \
@@ -133,6 +133,7 @@ torchrun --nproc_per_node=4 train_specflow.py \
   --enable_specflow \
   --model_ckpt <FS_ROOT>/DARE/outputs/qwen_zero3_4gpusoutput \
   --load_last_checkpoint
+  ```
 
 ```bash
 bash train_specflow.sh
