@@ -22,15 +22,23 @@ from utils.evaluator import VisualizationEvaluator
 
 logger = logging.getLogger(__name__)
 
-# ==== W&B placeholders – replace with your real values if you want logging ====
 WANDB_API_KEY = "<YOUR_WANDB_KEY_API>"
 WANDB_ENTITY = "<YOUR_WANDB_ENTITY>"
 PROJECT_NAME = "<YOUR_PROJECT_NAME>"
 
 
+def _dist_info() -> tuple[int, int]:
+    if dist.is_available() and dist.is_initialized():
+        return dist.get_rank(), dist.get_world_size()
+    rank = int(os.environ.get("RANK", "0"))
+    world_size = int(os.environ.get("WORLD_SIZE", "1"))
+    return rank, world_size
+
+
 def init_training_args(args):
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-    if args.local_rank is not None:
+
+    if args.local_rank is not None and torch.cuda.is_available():
         torch.cuda.set_device(args.local_rank)
 
     logging.basicConfig(level=logging.INFO)
@@ -49,7 +57,6 @@ def init_training_args(args):
 
     sup_hyper = training_cfg["hyper"]
 
-    # Run name
     args.run_name = create_run_name(args, training_cfg)
     args.run_name = args.note + args.run_name
 
@@ -66,7 +73,6 @@ def init_training_args(args):
         else None,
         save_total_limit=40,
         seed=args.seed,
-        # supervised tuning hyperparams
         learning_rate=sup_hyper["lr"] if sup_hyper else 0,
         per_device_train_batch_size=sup_hyper["train_batch_size"] if sup_hyper else 0,
         gradient_accumulation_steps=sup_hyper["grad_accumulation"] if sup_hyper else 0,
@@ -81,7 +87,6 @@ def init_training_args(args):
         generation_num_beams=training_cfg["model"]["generation_num_beams"],
     )
 
-    # ===== Your memory-friendly settings (kept as in your script) =====
     training_args.bf16 = True
     training_args.fp16 = False
     training_args.gradient_checkpointing = True
@@ -90,7 +95,6 @@ def init_training_args(args):
     if os.path.exists(ds_config_path):
         training_args.deepspeed = ds_config_path
 
-    # ===== DARE-specific metadata stored inside training_args (for Trainer/use later) =====
     training_args.enable_specflow = args.enable_specflow
     training_args.rho_text_target = args.rho_text_target
     training_args.rho_vis_target = args.rho_vis_target
@@ -100,33 +104,30 @@ def init_training_args(args):
     training_args.specflow_lambda_hard = args.specflow_lambda_hard
     training_args.specflow_prefix_kappa = args.specflow_prefix_kappa
 
-    # ===== DDP / rank detection =====
-    try:
-        rank = dist.get_rank()
-    except Exception:
-        rank = 0
+    rank, _ = _dist_info()
     args.local_rank = rank
 
-    # ===== W&B setup (same logic as your script, but slightly cleaned) =====
     if args.report_to == "wandb" and rank == 0:
-        wandb.login(key=WANDB_API_KEY)
-        init_args = {}
-        if "MLFLOW_EXPERIMENT_ID" in os.environ:
-            init_args["group"] = os.environ["MLFLOW_EXPERIMENT_ID"]
+        try:
+            wandb.login(key=WANDB_API_KEY)
+            init_args = {}
+            if "MLFLOW_EXPERIMENT_ID" in os.environ:
+                init_args["group"] = os.environ["MLFLOW_EXPERIMENT_ID"]
 
-        wandb.init(
-            project=os.getenv("WANDB_PROJECT", PROJECT_NAME),
-            name=args.run_name,
-            entity=os.getenv("WANDB_ENTITY", WANDB_ENTITY),
-            **init_args,
-        )
-        wandb.config.update(training_args, allow_val_change=True)
+            wandb.init(
+                project=os.getenv("WANDB_PROJECT", PROJECT_NAME),
+                name=args.run_name,
+                entity=os.getenv("WANDB_ENTITY", WANDB_ENTITY),
+                **init_args,
+            )
+            wandb.config.update(training_args, allow_val_change=True)
+        except Exception as e:
+            logger.warning(f"W&B init failed, disabling wandb logging. Error: {e}")
+            training_args.report_to = []
     else:
         training_args.report_to = []
 
-    # ===== checkpoint handling: we reuse this to start from MVoT-finetuned model =====
     if os.path.exists(training_args.output_dir) and args.model_ckpt is None:
-        # if output dir exists and no explicit model_ckpt given, treat it as resume dir
         args.model_ckpt = training_args.output_dir
 
     if args.model_ckpt is not None:
@@ -137,27 +138,24 @@ def init_training_args(args):
     return training_args
 
 
-def maybe_attach_specflow(model, training_args):
-    """
-    Attach DARE router / configs to the model.
-
-    NOTE: this assumes you have implemented DARE modules somewhere like:
-      model_utils/specflow/router.py, model_utils/specflow/wrappers.py, etc.
-
-    The key design: we DO NOT change the training loop or HF Trainer;
-    we just (1) add small router modules and (2) let the model's forward()
-    consume training_args.enable_specflow & co.
-    """
+def do_attach_specflow(model, training_args):
     if not getattr(training_args, "enable_specflow", False):
-        return model  # vanilla MVoT behaviour
+        return model
 
     try:
-        from model_utils.specflow import DAREConfig, DAREController, attach_specflow_to_anole
+        from model_utils.specflow import (
+            DAREConfig,
+            DAREController,
+            attach_specflow_to_anole,
+        )
     except ImportError:
         logger.warning(
-            "DARE is enabled but model_utils.specflow is not found. "
-            "Please create model_utils/specflow/__init__.py with DAREConfig, "
-            "DAREController, and attach_specflow_to_anole()."
+            "SpecFlow is enabled but required symbols are missing.\n"
+            "Please implement and export:\n"
+            "  - DAREConfig (or SpecFlowConfig)\n"
+            "  - DAREController (or SpecFlowController wrapper)\n"
+            "  - attach_specflow_to_anole(model, controller)\n"
+            "in model_utils/specflow/__init__.py"
         )
         return model
 
@@ -175,12 +173,10 @@ def maybe_attach_specflow(model, training_args):
     )
     controller = DAREController(cfg)
 
-    # This function is where you actually wrap the Anole blocks
-    # so that they call into the router and apply masks / KV pruning.
     model = attach_specflow_to_anole(model, controller)
 
     logger.info(
-        f"DARE attached: rho_t={cfg.rho_text_target}, "
+        f"SpecFlow attached: rho_t={cfg.rho_text_target}, "
         f"rho_v={cfg.rho_vis_target}, tau={cfg.tau}"
     )
     return model
@@ -196,16 +192,9 @@ if __name__ == "__main__":
     parser.add_argument("--image_seq_length", type=int, default=1024)
     parser.add_argument("--no_perceptual_loss", action="store_true")
 
-    # model ckpt: MUST point to the MVoT-finetuned run for our method
-    parser.add_argument(
-        "--model_ckpt",
-        type=str,
-        default=None,
-        help="Path to a checkpoint dir (use MVoT-finetuned dir for DARE).",
-    )
+    parser.add_argument("--model_ckpt", type=str, default=None)
     parser.add_argument("--load_last_checkpoint", action="store_true")
 
-    # training / evaluation flags
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_eval", action="store_true")
     parser.add_argument("--do_predict", action="store_true")
@@ -219,7 +208,7 @@ if __name__ == "__main__":
     parser.add_argument("--cache_dir", type=str, default=None)
 
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--local_rank", type=int)
+    parser.add_argument("--local_rank", type=int, default=None)
 
     parser.add_argument("--toy", action="store_true")
 
@@ -227,54 +216,14 @@ if __name__ == "__main__":
     parser.add_argument("--val_bz", type=int, default=None)
     parser.add_argument("--grad_acc", type=int, default=None)
 
-    # ====== DARE-specific CLI flags ======
-    parser.add_argument(
-        "--enable_specflow",
-        action="store_true",
-        help="Enable DARE routing / pruning on top of MVoT.",
-    )
-    parser.add_argument(
-        "--rho_text_target",
-        type=float,
-        default=0.7,
-        help="Global target retention ratio for text tokens.",
-    )
-    parser.add_argument(
-        "--rho_vis_target",
-        type=float,
-        default=0.4,
-        help="Global target retention ratio for visual tokens.",
-    )
-    parser.add_argument(
-        "--specflow_tau",
-        type=float,
-        default=0.5,
-        help="Gumbel-Softmax temperature.",
-    )
-    parser.add_argument(
-        "--specflow_lambda_ratio",
-        type=float,
-        default=1.0,
-        help="Weight for ratio-matching loss L_ratio^t.",
-    )
-    parser.add_argument(
-        "--specflow_lambda_soft",
-        type=float,
-        default=1.0,
-        help="Weight for visual soft sparsity loss L_soft^v.",
-    )
-    parser.add_argument(
-        "--specflow_lambda_hard",
-        type=float,
-        default=1.0,
-        help="Weight for visual hard penalty L_hard^v.",
-    )
-    parser.add_argument(
-        "--specflow_prefix_kappa",
-        type=int,
-        default=16,
-        help="Number of prefix tokens per hop always retained in KV cache.",
-    )
+    parser.add_argument("--enable_specflow", action="store_true")
+    parser.add_argument("--rho_text_target", type=float, default=0.7)
+    parser.add_argument("--rho_vis_target", type=float, default=0.4)
+    parser.add_argument("--specflow_tau", type=float, default=0.5)
+    parser.add_argument("--specflow_lambda_ratio", type=float, default=1.0)
+    parser.add_argument("--specflow_lambda_soft", type=float, default=1.0)
+    parser.add_argument("--specflow_lambda_hard", type=float, default=1.0)
+    parser.add_argument("--specflow_prefix_kappa", type=int, default=16)
 
     args = parser.parse_args()
 
@@ -290,21 +239,17 @@ if __name__ == "__main__":
     print(f"Preparing the {args.data} dataset... ")
     data = load_data(dataset=args.data, data_dir=args.data_dir)
 
-    if len(data) == 2:
-        train_split, eval_split, test_split = data["train"], None, data["test"]
-    else:
-        try:
-            train_split, eval_split, test_split = (
-                data["train"],
-                data["dev"],
-                data["test"],
-            )
-        except Exception:
-            train_split, eval_split, test_split = (
-                data["train"],
-                data["validation"],
-                data["test"],
-            )
+    train_split = data.get("train", None)
+    test_split = data.get("test", None)
+
+    if train_split is None or test_split is None:
+        raise ValueError(f"Dataset loader must return at least train/test splits. Got keys: {list(data.keys())}")
+
+    eval_split = None
+    if "dev" in data:
+        eval_split = data["dev"]
+    elif "validation" in data:
+        eval_split = data["validation"]
 
     if args.toy:
         print("Only using toy examples for debugging...")
@@ -323,30 +268,23 @@ if __name__ == "__main__":
             n_test = min(max_test_toy, len(test_split))
             test_split = test_split.select(list(range(n_test)))
 
-    # ===== Load MVoT / Anole model (possibly from MVoT-finetuned ckpt) =====
     model_processor = load_model(args)
     model, processor = model_processor["model"], model_processor["processor"]
 
-    # Trainer-side gradient checkpointing already enabled via training_args,
-    # but we also enable model-side checkpointing where supported.
     if hasattr(model, "gradient_checkpointing_enable"):
         try:
             model.gradient_checkpointing_enable()
         except TypeError:
             model.gradient_checkpointing = True
 
-    # Disable KV cache during training for memory
     if hasattr(model, "config") and hasattr(model.config, "use_cache"):
         model.config.use_cache = False
 
-    # ===== Attach DARE routing and KV-cache pruning (no change if enable_specflow=False) =====
-    model = maybe_attach_specflow(model, training_args)
+    model = do_attach_specflow(model, training_args)
 
-    # ===== Dataset tokenization =====
-    world_size = torch.cuda.device_count() if torch.cuda.is_available() else 1
-    
+    rank, world_size = _dist_info()
+
     if eval_split is not None:
-
         eval_data_num = (
             len(eval_split)
             // (training_args.per_device_eval_batch_size * world_size)
@@ -360,11 +298,8 @@ if __name__ == "__main__":
         test_split = test_split.select(list(range(test_data_num)))
 
         print(f"Eval Num: {eval_data_num}")
-
     else:
-        eval_data_num = 0
         print("No eval split detected; skipping eval truncation.")
-
 
     tokenized_data, max_source_length, max_target_length = tokenize_dataset(
         train_split=train_split,
@@ -380,9 +315,7 @@ if __name__ == "__main__":
     training_args.generation_max_new_tokens = max_target_length + 100
     print(f"generation_max_new_tokens: {training_args.generation_max_new_tokens}")
 
-    early_stopping_callback = EarlyStoppingCallback(
-        early_stopping_patience=args.patience
-    )
+    early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=args.patience)
 
     from utils.data_collator import customize_data_collator
     data_collator = customize_data_collator
@@ -392,8 +325,8 @@ if __name__ == "__main__":
 
     training_args.label_smoothing_factor = 0.1
 
+    kwargs = {}
     if args.model in ["anole"]:
-        kwargs = dict()
         kwargs["multimodal_generation_mode"] = "interleaved-text-image"
         kwargs["stopping_criteria"] = StoppingCriteriaList(
             [
@@ -412,6 +345,14 @@ if __name__ == "__main__":
             ]
         )
 
+    wandb_run_dir = None
+    if args.report_to == "wandb" and rank == 0:
+        try:
+            if wandb.run is not None and hasattr(wandb.run, "dir"):
+                wandb_run_dir = wandb.run.dir
+        except Exception:
+            wandb_run_dir = None
+
     trainer = trainer_type(
         args=training_args,
         model=model,
@@ -425,13 +366,12 @@ if __name__ == "__main__":
         eval_examples=eval_split
         if "eval" in tokenized_data.keys()
         else test_split,
-        wandb_run_dir=wandb.run.dir
-        if (args.report_to == "wandb" and args.local_rank == 0)
-        else None,
+        wandb_run_dir=wandb_run_dir,
         image_loss_func=not args.no_perceptual_loss,
+        callbacks=[early_stopping_callback],
     )
 
-    print("DARE Trainer built successfully.")
+    print("Trainer built successfully.")
 
     checkpoint = training_args.load_weights_from
 
@@ -441,9 +381,7 @@ if __name__ == "__main__":
 
         metrics = train_result.metrics
         max_train_samples = len(tokenized_data["train"])
-        metrics["train_samples"] = min(
-            max_train_samples, len(tokenized_data["train"])
-        )
+        metrics["train_samples"] = min(max_train_samples, len(tokenized_data["train"]))
 
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
@@ -456,32 +394,26 @@ if __name__ == "__main__":
         if metrics is not None and len(metrics) > 0:
             if "eval" in tokenized_data:
                 max_eval_samples = len(tokenized_data["eval"])
-                metrics["eval_samples"] = min(
-                    max_eval_samples, len(tokenized_data["eval"])
-                )
+                metrics["eval_samples"] = min(max_eval_samples, len(tokenized_data["eval"]))
             else:
                 max_eval_samples = len(tokenized_data["test"])
-                metrics["eval_samples"] = min(
-                    max_eval_samples, len(tokenized_data["test"])
-                )
+                metrics["eval_samples"] = min(max_eval_samples, len(tokenized_data["test"]))
 
             trainer.log_metrics("eval", metrics)
             trainer.save_metrics("eval", metrics)
 
+    if args.do_predict:
+        logger.info("*** Predict ***")
+        predict_results = trainer.predict(
+            test_dataset=tokenized_data["test"],
+            test_examples=tokenized_data["test"].dataset,
+            metric_key_prefix="predict",
+            **kwargs,
+        )
+        metrics = predict_results.metrics
+        max_predict_samples = len(tokenized_data["test"])
+        metrics["predict_samples"] = min(max_predict_samples, len(tokenized_data["test"]))
 
-        if args.do_predict:
-            logger.info("*** Predict ***")
-            predict_results = trainer.predict(
-                test_dataset=tokenized_data["test"],
-                test_examples=tokenized_data["test"].dataset,
-                metric_key_prefix="predict",
-                **kwargs,
-            )
-            metrics = predict_results.metrics
-            max_predict_samples = len(tokenized_data["test"])
-            metrics["predict_samples"] = min(
-                max_predict_samples, len(tokenized_data["test"])
-            )
-
-            trainer.log_metrics("predict", metrics)
-            trainer.save_metrics("predict", metrics)
+        trainer.log_metrics("predict", metrics)
+        
+        trainer.save_metrics("predict", metrics)

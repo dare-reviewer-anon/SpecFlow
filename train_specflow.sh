@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=specflow-anole-a100-4g
+#SBATCH --job-name=specflow-qwen-a100-4g
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --partition=gpu_a100
@@ -52,40 +52,22 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 #############################
 # 3. Move to project root
 #############################
-cd <FS_ROOT>/DARE
-mkdir -p logs
-
-echo "=== Environment check ==="
-which python
-python --version
-which torchrun
-echo "========================="
-
-#############################
-# 4. DARE training (4 GPUs + ZeRO-3)
-#############################
-
-echo "[$(date)] Starting DARE torchrun..."
-
 torchrun --nproc_per_node=4 train_specflow.py \
-  --model anole \
+  --model qwen \
   --data interleaved_maze \
   --data_dir <FS_ROOT>/data-samples \
-  --decoder_type anole \
-  --input_format anole \
+  --decoder_type qwen \
+  --input_format qwen \
   --do_train \
   --do_eval \
   --cfg_path cfg \
-  --output outputs/specflow-anole7b-maze \
+  --output outputs/specflow-qwen-maze \
   --note "specflow-maze-image_seq_len-1024-" \
   --image_seq_length 1024 \
-  --report_to none \
+  --report_to "none" \
   --train_bz 2 \
   --val_bz 2 \
   --grad_acc 32 \
   --enable_specflow \
-  --rho_text_target 0.7 \
-  --rho_vis_target 0.4 \
-  --specflow_prefix_kappa 2 \
-  --model_ckpt <FS_ROOT>/DARE/outputs/anole7b_zero3_4gpusoutput \
+  --model_ckpt <FS_ROOT>/DARE/outputs/qwen_zero3_4gpusoutput \
   --load_last_checkpoint

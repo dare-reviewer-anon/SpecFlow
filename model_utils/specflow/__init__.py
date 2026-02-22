@@ -1,116 +1,130 @@
 # model_utils/specflow/__init__.py
+"""
+SpecFlow — Spectral-Progressive Thought Flow
 
-import logging
-from typing import List
-import torch.nn as nn
+Core components for bounded multimodal reasoning with:
+  - Blockwise DCT projection
+  - Frequency masking schedules M(t)
+  - Flow-matching velocity models
+  - ODE integration (Euler)
+  - CFG conditioning (simple / pos-neg)
+  - Multi-hop controller (Alg.1)
+  - Flow-matching trainer (Alg.2)
+  - Debug / visualization tools
 
-from .config import DAREConfig
-from .controller import DAREController
+Recommended usage pattern:
 
-logger = logging.getLogger(__name__)
-from .config import DAREConfig
-from .controller import (
-    DAREController,
-    ModalityRouter,
-    gather_prune_kv,
-    attach_specflow_to_anole,
+    from model_utils.specflow import (
+        SpecFlowController,
+        SpecFlowTrainer,
+        UNetVelocityModel,
+        VLMAdapter,
+        MaskConfig,
+        SchedulerConfig,
+    )
+
+The velocity models live in:
+    model_utils.specflow.velocity.*
+
+Conditioning utilities:
+    model_utils.specflow.conditioning
+"""
+
+# ---- Projection (DCT) ----
+from .cosine_proj import block_dct, block_idct
+
+# ---- Masking ----
+from .masking import (
+    MaskConfig,
+    mask_ratio,
+    block_mask,
+    expand_block_mask_to_grid,
 )
-from .attention import EfficientAttention
-from .wrapped_block import DAREWrappedBlock
+
+# ---- ODE ----
+from .ode import euler_step
+
+# ---- Scheduler ----
+from .scheduler import SchedulerConfig, build_time_grid
+
+# ---- Conditioning ----
+from .conditioning import (
+    make_cond,
+    make_posneg_cond,
+    get_cond_branch,
+    resolve_cfg_branches,
+    cfg_dropout_mask,
+    apply_cfg_dropout,
+    cfg_combine,
+    cfg_combine_posneg,
+)
+
+# ---- Trainer / Controller ----
+from .trainer import SpecFlowTrainer
+from .controller import SpecFlowController
+
+# ---- Debug / Logging ----
+from .logging import SpecFlowLogger, tensor_stats
+from .visualizer import SpecFlowVisualizer, VisualizerConfig, make_debug_bundle
+
+# ---- Velocity subpackage ----
+from .velocity import (
+    VelocityModel,
+    BaseVelocityModel,
+    DiTVelocityModel,
+    DiTVelocityConfig,
+    UNetVelocityModel,
+    UNetVelocityConfig,
+    VLMAdapter,
+    VLMAdapterConfig,
+)
 
 __all__ = [
-    "DAREConfig",
-    "DAREController",
-    "ModalityRouter",
-    "gather_prune_kv",
-    "attach_specflow_to_anole",
-    "EfficientAttention",
-    "DAREWrappedBlock",
+    # projection
+    "block_dct",
+    "block_idct",
+
+    # masking
+    "MaskConfig",
+    "mask_ratio",
+    "block_mask",
+    "expand_block_mask_to_grid",
+
+    # ODE
+    "euler_step",
+
+    # scheduler
+    "SchedulerConfig",
+    "build_time_grid",
+
+    # conditioning
+    "make_cond",
+    "make_posneg_cond",
+    "get_cond_branch",
+    "resolve_cfg_branches",
+    "cfg_dropout_mask",
+    "apply_cfg_dropout",
+    "cfg_combine",
+    "cfg_combine_posneg",
+
+    # trainer / controller
+    "SpecFlowTrainer",
+    "SpecFlowController",
+
+    # logging / visualization
+    "SpecFlowLogger",
+    "tensor_stats",
+    "SpecFlowVisualizer",
+    "VisualizerConfig",
+    "make_debug_bundle",
+
+    # velocity models
+    "VelocityModel",
+    "BaseVelocityModel",
+    "DiTVelocityModel",
+    "DiTVelocityConfig",
+    "UNetVelocityModel",
+    "UNetVelocityConfig",
+    "VLMAdapter",
+    "VLMAdapterConfig",
 ]
-
-
-def _find_transformer_blocks(model: nn.Module) -> List[nn.Module]:
-    cands = []
-
-    if hasattr(model, "model") and hasattr(model.model, "layers"):
-        layers = getattr(model.model, "layers")
-        if isinstance(layers, (nn.ModuleList, list)):
-            cands = list(layers)
-
-    if not cands and hasattr(model, "model") and hasattr(model.model, "decoder"):
-        dec = model.model.decoder
-        if hasattr(dec, "layers") and isinstance(dec.layers, (nn.ModuleList, list)):
-            cands = list(dec.layers)
-
-    if not cands and hasattr(model, "transformer"):
-        tr = model.transformer
-        for name in ["layers", "blocks"]:
-            if hasattr(tr, name):
-                blk = getattr(tr, name)
-                if isinstance(blk, (nn.ModuleList, list)):
-                    cands = list(blk)
-                    break
-
-    if not cands and hasattr(model, "layers"):
-        layers = getattr(model, "layers")
-        if isinstance(layers, (nn.ModuleList, list)):
-            cands = list(layers)
-
-    if not cands:
-        for m in model.modules():
-            cls = m.__class__.__name__.lower()
-            if any(k in cls for k in ["block", "decoderlayer", "transformerlayer"]):
-                cands.append(m)
-        cands = list(dict.fromkeys(cands))
-
-    return cands
-
-
-def attach_specflow_to_anole(model: nn.Module, controller: DAREController):
-    """
-    Wrap every Anole/Chameleon attention block in EfficientAttention and
-    attach a shared DAREController.
-    """
-    blocks = _find_transformer_blocks(model)
-
-    if not blocks:
-        logger.warning("[DARE] Could not find Transformer blocks. DARE disabled.")
-        return model
-
-    num_attn = 0
-    for idx, block in enumerate(blocks):
-        attn = None
-        if hasattr(block, "self_attn"):
-            attn = getattr(block, "self_attn")
-            attn_attr_name = "self_attn"
-        elif hasattr(block, "attention"):
-            attn = getattr(block, "attention")
-            attn_attr_name = "attention"
-        else:
-            attn_attr_name = None
-
-        if isinstance(attn, nn.Module) and attn_attr_name is not None:
-            # Wrap in EfficientAttention only once
-            if not isinstance(attn, EfficientAttention):
-                wrapped = EfficientAttention(attn)
-            else:
-                wrapped = attn  # already wrapped
-
-            # Attach controller + layer index to the wrapper
-            setattr(wrapped, "specflow_controller", controller)
-            setattr(wrapped, "specflow_layer_idx", idx)
-
-            # Replace original attention with the wrapper
-            setattr(block, attn_attr_name, wrapped)
-
-            num_attn += 1
-
-    if num_attn == 0:
-        logger.warning("[DARE] No attention modules found inside blocks.")
-    else:
-        logger.info(f"[DARE] Attached controller to {num_attn} attention layers.")
-
-    setattr(model, "specflow_controller", controller)
-    setattr(model, "specflow_enabled", True)
-
-    return model

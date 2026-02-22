@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=anole-a100-4g
+#SBATCH --job-name=qwen-a100-4g
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --partition=gpu_a100          
@@ -48,7 +48,7 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1
 # Use 4 GPUs on the node
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
-# Project root (DARE / Anole + DARE training code)
+# Project root (DARE / qwen + DARE training code)
 cd <FS_ROOT>/DARE
 mkdir -p logs
 
@@ -64,17 +64,17 @@ echo "========================="
 
 echo "[$(date)] Starting torchrun..."
 torchrun --nproc_per_node=4 traino.py \
-  --model anole \
+  --model qwen \
   --data interleaved_maze \
   --data_dir data_samples \
-  --decoder_type anole \
+  --decoder_type qwen \
   --do_train \
   --do_eval \
   --cfg_path cfg \
-  --output outputs/anole7b_zero3_4gpusoutput \
+  --output outputs/qwen_zero3_4gpusoutput \
   --report_to wandb \
   --train_bz 2 \
   --val_bz 2 \
   --grad_acc 32 \
   --image_seq_length 1024 \
-  --note "anole7b_zero3_4gpus_"
+  --note "qwen_zero3_4gpus_"
